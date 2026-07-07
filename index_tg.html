@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>В контакте ли ты с собой?</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1410;
+    --cream: #f5f0e8;
+    --warm: #e8ddd0;
+    --gold: #b8924a;
+    --gold-light: #d4ac6a;
+    --rust: #8b4a2a;
+    --muted: #7a6e64;
+    --card-bg: #faf7f2;
+  }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% 20%, rgba(184,146,74,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 85% 80%, rgba(139,74,42,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 560px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* INTRO SCREEN */
+  .screen { display: none; animation: fadeIn 0.5s ease both; }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Decorative line */
+  .deco-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .deco-line::before, .deco-line::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .deco-star {
+    font-size: 18px;
+    color: var(--gold);
+    letter-spacing: 6px;
+  }
+
+  .intro-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 7vw, 48px);
+    font-weight: 300;
+    line-height: 1.15;
+    text-align: center;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--rust);
+  }
+
+  .subtitle {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 36px;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* PROGRESS */
+  .progress-wrap {
+    margin-bottom: 32px;
+  }
+  .progress-track {
+    height: 2px;
+    background: var(--warm);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  /* QUESTION CARD */
+  .q-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(184,146,74,0.2);
+    border-radius: 4px;
+    padding: 32px 28px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .q-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+
+  .q-number {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .q-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 4vw, 26px);
+    font-weight: 400;
+    line-height: 1.35;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+
+  /* ANSWER OPTIONS */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid rgba(184,146,74,0.25);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  .option:hover {
+    border-color: var(--gold);
+    background: rgba(184,146,74,0.05);
+  }
+
+  .option.selected {
+    border-color: var(--gold);
+    background: rgba(184,146,74,0.08);
+  }
+
+  .option-dot {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid rgba(184,146,74,0.4);
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .option.selected .option-dot {
+    border-color: var(--gold);
+    background: var(--gold);
+  }
+
+  .option.selected .option-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: white;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn:hover {
+    background: #2d2520;
+    transform: translateY(-1px);
+  }
+
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid rgba(122,110,100,0.3);
+    margin-top: 10px;
+  }
+  .btn-ghost:hover {
+    background: rgba(122,110,100,0.06);
+    color: var(--ink);
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: white;
+    font-size: 15px;
+    padding: 18px 24px;
+  }
+  .btn-gold:hover {
+    background: linear-gradient(135deg, #a07d3e, var(--gold));
+  }
+
+  /* START SCREEN */
+  .start-ornament {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 24px;
+    letter-spacing: 8px;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  /* RESULT SCREEN */
+  .result-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(184,146,74,0.2);
+    border-radius: 4px;
+    padding: 36px 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--rust), var(--gold), var(--gold-light));
+  }
+
+  .result-score-wrap {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .result-score-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  .result-score-max {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  .result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 400;
+    text-align: center;
+    line-height: 1.3;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+
+  .result-title em { font-style: italic; color: var(--rust); }
+
+  .result-divider {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin: 20px auto;
+  }
+
+  .result-text {
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: #3d3530;
+    margin-bottom: 16px;
+  }
+
+  .result-text strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* Answers summary */
+  .answers-summary {
+    margin: 24px 0;
+    border-top: 1px solid rgba(184,146,74,0.15);
+    padding-top: 20px;
+  }
+  .answers-summary-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .answer-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .answer-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .answer-dot.red { background: var(--rust); }
+  .answer-dot.gray { background: #bbb; }
+
+  .cta-block {
+    background: linear-gradient(135deg, rgba(139,74,42,0.06), rgba(184,146,74,0.08));
+    border: 1px solid rgba(184,146,74,0.25);
+    border-radius: 3px;
+    padding: 24px 22px;
+    margin-top: 24px;
+  }
+
+  .cta-block p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #3d3530;
+    margin-bottom: 16px;
+  }
+
+  .cta-block p em {
+    font-style: italic;
+    color: var(--rust);
+  }
+
+  .cta-who {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .cta-product {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .cta-product em { font-style: italic; color: var(--rust); }
+
+  .cta-sublabel {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  .cta-list {
+    list-style: none;
+    margin-bottom: 16px;
+  }
+  .cta-list li {
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 1.6;
+    color: #3d3530;
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .cta-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+  }
+
+  .cta-note {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+
+  .cta-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .cta-arrow {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .cta-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 16px;
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+  }
+
+  .cta-btn-tg {
+    background: #2AABEE;
+    color: white;
+  }
+  .cta-btn-tg:hover { background: #1e99d6; transform: translateY(-1px); }
+
+  .cta-btn-vk {
+    background: #0077FF;
+    color: white;
+  }
+  .cta-btn-vk:hover { background: #0066dd; transform: translateY(-1px); }
+
+  .restart-link {
+    text-align: center;
+    margin-top: 14px;
+  }
+  .restart-link button {
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: 4px;
+  }
+  .restart-link button:hover { color: var(--ink); }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="screen-start">
+    <div class="intro-label">Самодиагностика</div>
+    <div class="start-ornament">✦ ✦ ✦</div>
+    <h1>В контакте ли ты<br><em>с собой?</em></h1>
+    <p class="subtitle">5 вопросов без правильных ответов.<br>Только честный взгляд на то, где ты сейчас.</p>
+    <div class="deco-line"><span class="deco-star">✦</span></div>
+    <button class="btn" onclick="startQuiz()">Начать →</button>
+  </div>
+
+  <!-- QUESTION SCREEN -->
+  <div class="screen" id="screen-question">
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+      <div class="progress-label" id="progress-label">1 / 5</div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-number" id="q-number">Вопрос 01</div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options-wrap"></div>
+    </div>
+
+    <button class="btn" id="btn-next" onclick="nextQuestion()" disabled>Следующий вопрос →</button>
+    <button class="btn btn-ghost" onclick="prevQuestion()" id="btn-back">← Назад</button>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="screen" id="screen-result">
+    <div class="result-card">
+      <div class="result-score-wrap">
+        <div class="result-score-num" id="result-score">0</div>
+        <div class="result-score-max">из 5 ситуаций, где ты можешь отодвигать себя</div>
+      </div>
+      <h1 class="result-title" id="result-title"></h1>
+      <div class="result-divider"></div>
+      <p class="result-text" id="result-main"></p>
+      <p class="result-text" id="result-sub"></p>
+
+      <div class="answers-summary" id="answers-summary"></div>
+
+      <div class="cta-block" id="cta-block"></div>
+    </div>
+
+    <div class="restart-link">
+      <button onclick="restartQuiz()">Пройти заново</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    text: "Ты сделала что-то хорошее. Как ты себя чувствуешь внутри?",
+    options: [
+      { text: "Радуюсь и позволяю себе это почувствовать", score: 0 },
+      { text: "Приятно, но сразу думаю: что ещё надо сделать", score: 0 },
+      { text: "Быстро обесцениваю — «ну и что, могло быть лучше»", score: 1 },
+      { text: "Жду, что кто-то другой это заметит — тогда поверю", score: 1 },
+    ]
+  },
+  {
+    text: "Подруга просит помочь, но у тебя нет сил. Что ты делаешь?",
+    options: [
+      { text: "Говорю честно: сейчас не могу, давай позже", score: 0 },
+      { text: "Помогаю, но говорю, что устала", score: 0 },
+      { text: "Помогаю и молчу — неудобно отказывать", score: 1 },
+      { text: "Помогаю и злюсь внутри, что снова не смогла отказать", score: 1 },
+    ]
+  },
+  {
+    text: "Ты осталась одна на вечер. Без дел, без телефона. Как тебе?",
+    options: [
+      { text: "Кайф — наконец-то тишина и я", score: 0 },
+      { text: "Нормально, хотя немного непривычно", score: 0 },
+      { text: "Тревожно — начинаю думать о том, что не сделала", score: 1 },
+      { text: "Неуютно, быстро нахожу чем себя занять", score: 1 },
+    ]
+  },
+  {
+    text: "Тебя спрашивают: «Чего ты сама хочешь?» Что происходит внутри?",
+    options: [
+      { text: "Знаю и могу ответить без долгих раздумий", score: 0 },
+      { text: "Знаю примерно, но формулирую с трудом", score: 0 },
+      { text: "Теряюсь — сначала думаю, что удобнее другим", score: 1 },
+      { text: "Честно не знаю — давно не задавала себе этот вопрос", score: 1 },
+    ]
+  },
+  {
+    text: "Ты посмотрела на себя в зеркало. Первая мысль — какая?",
+    options: [
+      { text: "Нейтрально или с симпатией к себе", score: 0 },
+      { text: "Замечаю и хорошее, и что хотелось бы иначе", score: 0 },
+      { text: "Сразу вижу что не нравится", score: 1 },
+      { text: "Стараюсь не задерживаться взглядом", score: 1 },
+    ]
+  }
+];
+
+function ctaBlock() {
+  return `
+    <p>Этот результат не говорит, что с тобой что-то не так.</p>
+    <p>Он показывает, насколько сейчас ты слышишь себя, замечаешь усталость, понимаешь свои желания и разрешаешь себе не только справляться.</p>
+    <p>Иногда контакт с собой теряется не потому, что ты «недостаточно осознанная». Просто ты слишком долго жила в режиме «надо», тянула всё сама и откладывала себя на потом.</p>
+    <p style="margin-bottom:20px"><em>Хочешь понять, где именно ты сейчас теряешь контакт с собой и что мешает его вернуть?</em></p>
+    <a href="https://t.me/jain1109" target="_blank" class="btn btn-gold" style="display:block;text-align:center;text-decoration:none">Получить продолжение</a>
+  `;
+}
+
+let current = 0;
+let answers = new Array(questions.length).fill(null);
+
+function startQuiz() {
+  showScreen('screen-question');
+  renderQuestion();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  // retrigger animation
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = '';
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('q-number').textContent = `Вопрос ${String(current + 1).padStart(2, '0')}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('progress-label').textContent = `${current + 1} / ${questions.length}`;
+  document.getElementById('progress-fill').style.width = `${((current) / questions.length) * 100}%`;
+
+  const wrap = document.getElementById('options-wrap');
+  wrap.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option' + (answers[current] === i ? ' selected' : '');
+    btn.innerHTML = `<span class="option-dot"></span><span>${opt.text}</span>`;
+    btn.onclick = () => selectOption(i);
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('btn-next').disabled = answers[current] === null;
+  document.getElementById('btn-back').style.display = current === 0 ? 'none' : 'block';
+
+  const isLast = current === questions.length - 1;
+  document.getElementById('btn-next').textContent = isLast ? 'Показать результат →' : 'Следующий вопрос →';
+}
+
+function selectOption(idx) {
+  answers[current] = idx;
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  if (current < questions.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function prevQuestion() {
+  if (current > 0) {
+    current--;
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  const score = answers.reduce((sum, ansIdx, qIdx) => {
+    if (ansIdx === null) return sum;
+    return sum + questions[qIdx].options[ansIdx].score;
+  }, 0);
+
+  document.getElementById('result-score').textContent = score;
+  document.getElementById('progress-fill').style.width = '100%';
+
+  let title, main, sub, cta;
+
+  if (score <= 1) {
+    title = 'Контакт с собой — <em>есть</em>';
+    main = 'Ты в целом себя слышишь: замечаешь свои желания, можешь учитывать собственное состояние и не всегда ставишь чужие ожидания выше себя. Это не значит, что ты никогда не сомневаешься и всегда легко говоришь «нет». Но внутренний голос у тебя не выключен.';
+    sub = 'Это не значит, что в жизни всё всегда понятно и легко. Но у тебя есть главное — внутренняя опора. Ты можешь замечать усталость, слышать свои желания и принимать решения не только из чувства долга.<br><br>В продолжении я помогу понять, что сейчас важнее: сохранить этот контакт, разобраться с конкретным напряжением или посмотреть, где ты снова начинаешь терять себя.';
+    cta = ctaBlock();
+  } else if (score <= 3) {
+    title = 'Контакт есть,<br>но <em>с помехами</em>';
+    main = 'В целом ты себя знаешь. Но связь периодически рвётся: то делаешь не то, что хотела, то слишком много берёшь на себя, то ловишь ощущение «что-то не так» — а что именно, не можешь ухватить.';
+    sub = 'Это не мелочь и не «само пройдёт». Это сигнал: есть зоны, в которые ты пока не смотришь. И часто именно там лежит ответ — почему буксует в деньгах, в отношениях или в ощущении себя. Иногда, чтобы это увидеть, достаточно честного взгляда со стороны — на конкретную ситуацию, а не на жизнь вообще.';
+    cta = ctaBlock();
+  } else {
+    title = 'Контакт с собой<br><em>сильно ослаблен</em>';
+    main = 'Похоже, ты слишком долго жила в режиме «надо»: справлялась, подстраивалась, держала всё под контролем и откладывала себя на потом. В таком состоянии собственные желания становятся тише — не потому, что с тобой что-то не так, а потому что до себя давно не доходила очередь.';
+    sub = '<strong>Это не приговор — это точка внимания.</strong> Когда контакт с собой ослабевает, становится сложнее понять, где твоё настоящее желание, а где страх, усталость или привычка терпеть. Первый шаг — не заставлять себя срочно измениться, а честно увидеть, в каких ситуациях ты чаще всего перестаёшь себя учитывать.';
+    cta = ctaBlock();
+  }
+
+  document.getElementById('result-title').innerHTML = title;
+  document.getElementById('result-main').innerHTML = main;
+  document.getElementById('result-sub').innerHTML = sub;
+  document.getElementById('cta-block').innerHTML = cta;
+
+  // Answers summary
+  const summaryEl = document.getElementById('answers-summary');
+  let summaryHTML = '<div class="answers-summary-title">Твои ответы</div>';
+  questions.forEach((q, qi) => {
+    const ansIdx = answers[qi];
+    const ansScore = ansIdx !== null ? q.options[ansIdx].score : 0;
+    const dotClass = ansScore === 1 ? 'red' : 'gray';
+    const ansText = ansIdx !== null ? q.options[ansIdx].text : '—';
+    summaryHTML += `<div class="answer-item"><span class="answer-dot ${dotClass}"></span><span>${ansText}</span></div>`;
+  });
+  summaryEl.innerHTML = summaryHTML;
+
+  showScreen('screen-result');
+}
+
+function restartQuiz() {
+  current = 0;
+  answers = new Array(questions.length).fill(null);
+  showScreen('screen-start');
+}
+</script>
+</body>
+</html>
